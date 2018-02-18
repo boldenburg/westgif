@@ -1,7 +1,7 @@
 var Bot = require('slackbots');
 var jsonfile = require('jsonfile')
 var command_modules = require('./command_modules');
-var delete_next_rightgif_message = 0;
+var delete_next_rightgif_message = {};
 var west_wing_gifs = ["https://media2.giphy.com/media/UPmyu7Kszqbks/giphy.gif",
 "https://media0.giphy.com/media/PjLGGPp58fsyI/giphy.gif",
 "https://media2.giphy.com/media/q8lAifCq2YmaY/giphy.gif",
@@ -708,6 +708,9 @@ var admin_bot = new Bot(admin_settings, false);
 var bot = new Bot(bot_settings, true);
 
 
+console.log("bot starting");
+
+
 // helper methods
 function should_process_this_message(message) {
     return message.type == "message"
@@ -735,13 +738,17 @@ function delete_message(message) {
 
 // main
 bot.on('message', function(message) {
-    var params = {
-        icon_url: 'https://slack-files2.s3-us-west-2.amazonaws.com/avatars/2015-12-05/16028820502_e357812b4c9cfd3f9848_36.jpg'
-    }
-
     if (should_process_this_message(message)) {
-        // delete next rightgif message
-        delete_next_rightgif_message++;
+        var params = {
+            icon_url: 'https://slack-files2.s3-us-west-2.amazonaws.com/avatars/2015-12-05/16028820502_e357812b4c9cfd3f9848_36.jpg'
+        }
+
+        // delete next rightgif message in this channel
+        if (delete_next_rightgif_message[message.channel]) {
+            delete_next_rightgif_message[message.channel]++;
+        } else {
+            delete_next_rightgif_message[message.channel] = 1;
+        }
 
         // insert random west wing gif
         var text = get_random_west_wing_gif();
@@ -751,9 +758,9 @@ bot.on('message', function(message) {
             text,
             params
         );
-    } else if (delete_next_rightgif_message && message.bot_id && message.bot_id == "B0JSSTL1E") {
+    } else if (delete_next_rightgif_message[message.channel] > 0 && message.bot_id && message.bot_id == "B0JSSTL1E") {
         console.log("deleting rightgif message");
         delete_message(message);
-        delete_next_rightgif_message--;
+        delete_next_rightgif_message[message.channel]--;
     }
 });
