@@ -1,2 +1,2 @@
-# aprilbot
-A Slack bot for legitimate purposes
+# westgif
+west wing best wing
